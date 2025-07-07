@@ -27,6 +27,7 @@ const CheckoutForm = ({ onSuccess, onCancel }) => {
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [promoCode, setPromoCode] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -78,6 +79,16 @@ const CheckoutForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Promo Code (Optional)</label>
+        <input
+          type="text"
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value)}
+          placeholder="Enter promo code"
+          className="w-full border-2 border-gray-200 rounded-xl p-3 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+        />
+      </div>
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">Card Details</label>
         <div className="border-2 border-gray-200 rounded-xl p-3 focus-within:border-blue-500 transition-colors">
