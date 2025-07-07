@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 // List of logos and names based on files present in /logos
 const universities = [
@@ -14,27 +14,57 @@ const universities = [
 
 export default function TrustedBySection() {
   const carouselRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const carousel = carouselRef.current;
+    if (!carousel) return;
+
     let animationFrame;
-    let isHovered = false;
-    let speed = 0.7; // px per frame
+    let speed = isMobile ? 0.5 : 0.7; // Slower speed on mobile
 
     const scroll = () => {
-      if (!carousel) return;
-      if (!isHovered) {
-        carousel.scrollLeft += speed;
-        // When we've scrolled halfway (one set of logos), reset to 0 for seamless loop
-        if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
-          carousel.scrollLeft = 0;
-        }
+      if (!carousel || isPaused) {
+        animationFrame = requestAnimationFrame(scroll);
+        return;
       }
+
+      carousel.scrollLeft += speed;
+      
+      // When we've scrolled halfway (one set of logos), reset to 0 for seamless loop
+      if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
+        carousel.scrollLeft = 0;
+      }
+      
       animationFrame = requestAnimationFrame(scroll);
     };
+
     scroll();
     return () => cancelAnimationFrame(animationFrame);
-  }, []);
+  }, [isPaused, isMobile]);
+
+  // Touch event handlers for mobile
+  const handleTouchStart = () => {
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = () => {
+    // Resume after a short delay
+    setTimeout(() => setIsPaused(false), 1000);
+  };
 
   return (
     <section className="my-10 text-center">
@@ -51,25 +81,30 @@ export default function TrustedBySection() {
           padding: '18px 0',
           overflow: 'hidden',
         }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
         <div
           ref={carouselRef}
-          className="flex gap-16 items-center py-2"
+          className="flex gap-8 sm:gap-16 items-center py-2"
           style={{
             width: '100%',
             overflow: 'hidden',
             scrollBehavior: 'auto',
             whiteSpace: 'nowrap',
+            WebkitOverflowScrolling: 'touch', // Better scrolling on iOS
           }}
         >
           {[...universities, ...universities].map((u, i) => (
-            <div key={u.name + i} className="flex flex-col items-center min-w-[200px]">
+            <div key={u.name + i} className="flex flex-col items-center min-w-[120px] sm:min-w-[200px]">
               <img
                 src={u.logo}
                 alt={u.name}
                 style={{
-                  width: 180,
-                  height: 180,
+                  width: isMobile ? 100 : 180,
+                  height: isMobile ? 100 : 180,
                   objectFit: 'contain',
                   objectPosition: 'center',
                   display: 'block',
