@@ -640,10 +640,6 @@ export default function EssayAnalyzer() {
     trackModeSelection(mode);
   };
 
-  const handleUpgradeToPro = () => {
-    setShowPaymentModal(true);
-  };
-
   const handlePaymentSuccess = (paymentResult) => {
     setIsPro(true);
     localStorage.setItem('admitly_pro', 'true');
