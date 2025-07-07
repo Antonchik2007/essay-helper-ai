@@ -13,8 +13,6 @@ const universities = [
 ];
 
 export default function TrustedBySection() {
-  const carouselRef = useRef(null);
-  const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -29,45 +27,25 @@ export default function TrustedBySection() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (!carousel) return;
-
-    let animationFrame;
-    let speed = isMobile ? 0.5 : 0.7; // Slower speed on mobile
-
-    const scroll = () => {
-      if (!carousel || isPaused) {
-        animationFrame = requestAnimationFrame(scroll);
-        return;
-      }
-
-      carousel.scrollLeft += speed;
-      
-      // When we've scrolled halfway (one set of logos), reset to 0 for seamless loop
-      if (carousel.scrollLeft >= carousel.scrollWidth / 2) {
-        carousel.scrollLeft = 0;
-      }
-      
-      animationFrame = requestAnimationFrame(scroll);
-    };
-
-    scroll();
-    return () => cancelAnimationFrame(animationFrame);
-  }, [isPaused, isMobile]);
-
-  // Touch event handlers for mobile
-  const handleTouchStart = () => {
-    setIsPaused(true);
+  const animationStyle = {
+    animation: 'scroll 30s linear infinite',
+    width: 'max-content',
   };
 
-  const handleTouchEnd = () => {
-    // Resume after a short delay
-    setTimeout(() => setIsPaused(false), 1000);
-  };
+  const keyframes = `
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-${universities.length * (isMobile ? 140 : 220)}px);
+      }
+    }
+  `;
 
   return (
     <section className="my-10 text-center">
+      <style dangerouslySetInnerHTML={{ __html: keyframes }} />
       <div className="text-lg font-semibold mb-4 text-gray-700">Trusted by students who got into</div>
       <div
         className="relative w-full flex justify-center items-center"
@@ -81,30 +59,19 @@ export default function TrustedBySection() {
           padding: '18px 0',
           overflow: 'hidden',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
       >
         <div
-          ref={carouselRef}
           className="flex gap-8 sm:gap-16 items-center py-2"
-          style={{
-            width: '100%',
-            overflow: 'hidden',
-            scrollBehavior: 'auto',
-            whiteSpace: 'nowrap',
-            WebkitOverflowScrolling: 'touch', // Better scrolling on iOS
-          }}
+          style={animationStyle}
         >
-          {[...universities, ...universities].map((u, i) => (
-            <div key={u.name + i} className="flex flex-col items-center min-w-[120px] sm:min-w-[200px]">
+          {[...universities, ...universities, ...universities].map((u, i) => (
+            <div key={u.name + i} className="flex flex-col items-center min-w-[140px] sm:min-w-[220px]">
               <img
                 src={u.logo}
                 alt={u.name}
                 style={{
-                  width: isMobile ? 100 : 180,
-                  height: isMobile ? 100 : 180,
+                  width: isMobile ? 120 : 200,
+                  height: isMobile ? 120 : 200,
                   objectFit: 'contain',
                   objectPosition: 'center',
                   display: 'block',
