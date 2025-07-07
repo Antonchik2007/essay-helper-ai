@@ -1,161 +1,167 @@
-# Deployment Guide - Essay Helper AI
+# Admitly Deployment Guide - Netlify Functions
 
-Your app is ready for deployment! Here are the best options:
+This guide will help you deploy Admitly to Netlify using serverless functions for the backend.
 
-## Option 1: Netlify (Recommended - Easiest)
+## Prerequisites
 
-### Step 1: Push to GitHub
-1. Create a new repository on GitHub
-2. Run these commands:
+1. **Netlify Account** - for both frontend and backend deployment
+2. **GitHub Account** - to host your code
+3. **Stripe Account** - for payment processing
+
+## Step 1: Prepare Your Code
+
+### 1.1 Push to GitHub
+
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/essay-helper-ai.git
-git branch -M main
-git push -u origin main
+git add .
+git commit -m "Ready for Netlify deployment"
+git push origin main
 ```
 
-### Step 2: Deploy to Netlify
-1. Go to [Netlify](https://netlify.com/)
-2. Click "New site from Git"
-3. Connect your GitHub account
-4. Select your `essay-helper-ai` repository
-5. Set build settings:
+### 1.2 Install Netlify CLI (Optional)
+
+```bash
+npm install -g netlify-cli
+```
+
+## Step 2: Deploy to Netlify
+
+### Option A: Deploy from GitHub (Recommended)
+
+1. **Go to [Netlify](https://netlify.com)**
+2. **Click "New site from Git"**
+3. **Connect your GitHub account**
+4. **Select your repository**
+5. **Configure build settings:**
    - **Build command**: `npm run build`
    - **Publish directory**: `build`
-6. Click "Deploy site"
+6. **Click "Deploy site"**
 
-### Step 3: Set Environment Variables
-1. In your Netlify dashboard, go to **Site settings > Environment variables**
-2. Add these variables:
+### Option B: Deploy from Local Build
+
+1. **Build the project:**
+   ```bash
+   npm run build
    ```
-   REACT_APP_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-   REACT_APP_GROQ_API_KEY=your_groq_api_key_here
+2. **Drag the `build` folder** to Netlify's deploy area
+
+## Step 3: Configure Environment Variables
+
+In your Netlify dashboard, go to **Site Settings → Environment Variables** and add:
+
+```
+REACT_APP_GROQ_API_KEY=gsk_your_groq_key_here
+REACT_APP_GA_MEASUREMENT_ID=G-your_ga_id_here
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key_here
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+```
+
+**Important Notes:**
+- `STRIPE_SECRET_KEY` is used by the Netlify Function
+- `REACT_APP_STRIPE_PUBLISHABLE_KEY` is used by the frontend
+- Never expose `STRIPE_SECRET_KEY` in the frontend
+
+## Step 4: Test Your Deployment
+
+1. **Test the frontend** at your Netlify URL
+2. **Test the payment flow** with Stripe test cards:
+   - **Success**: `4242 4242 4242 4242`
+   - **Decline**: `4000 0000 0000 0002`
+3. **Check function logs** in Netlify dashboard
+
+## Local Development
+
+### Option A: Using Netlify CLI
+
+1. **Install Netlify CLI:**
+   ```bash
+   npm install -g netlify-cli
    ```
 
-### Step 4: Custom Domain (Optional)
-1. Go to **Domain settings**
-2. Add your custom domain
-3. Follow Netlify's DNS instructions
+2. **Start local development:**
+   ```bash
+   netlify dev
+   ```
 
-## Option 2: Vercel (Also Great)
+3. **Set environment variables locally:**
+   ```bash
+   netlify env:set STRIPE_SECRET_KEY sk_test_your_key_here
+   netlify env:set REACT_APP_GROQ_API_KEY gsk_your_key_here
+   netlify env:set REACT_APP_GA_MEASUREMENT_ID G-your_ga_id_here
+   netlify env:set REACT_APP_STRIPE_PUBLISHABLE_KEY pk_test_your_key_here
+   ```
 
-### Step 1: Push to GitHub
-Same as Netlify Step 1
+### Option B: Traditional Development
 
-### Step 2: Deploy to Vercel
-1. Go to [Vercel](https://vercel.com/)
-2. Click "New Project"
-3. Import your GitHub repository
-4. Vercel will auto-detect it's a React app
-5. Click "Deploy"
+1. **Start the React app:**
+   ```bash
+   npm start
+   ```
 
-### Step 3: Set Environment Variables
-1. In your Vercel dashboard, go to **Settings > Environment Variables**
-2. Add the same variables as Netlify
-
-## Option 3: GitHub Pages
-
-### Step 1: Add GitHub Pages
-1. In your GitHub repository, go to **Settings > Pages**
-2. Set source to "GitHub Actions"
-3. Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-    - run: npm install
-    - run: npm run build
-    - uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
-```
-
-## Environment Variables Setup
-
-### Required Variables:
-```
-REACT_APP_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-REACT_APP_GROQ_API_KEY=your_groq_api_key_here
-```
-
-### How to Get Them:
-
-#### Google Analytics Measurement ID:
-1. Go to [Google Analytics](https://analytics.google.com/)
-2. Create a new GA4 property
-3. Copy the Measurement ID (starts with "G-")
-
-#### Groq API Key:
-1. Go to [Groq Console](https://console.groq.com/)
-2. Create an account and get your API key
-
-## Post-Deployment Checklist
-
-### ✅ Test Your App
-- [ ] Visit your deployed URL
-- [ ] Test essay analysis functionality
-- [ ] Test all three modes (Standard, Competitive, Elite)
-- [ ] Test with and without essay prompts
-- [ ] Verify Google Analytics is working
-
-### ✅ Monitor Analytics
-- [ ] Check Google Analytics real-time reports
-- [ ] Verify events are being tracked
-- [ ] Set up goals for essay analysis
-
-### ✅ Performance Check
-- [ ] Test loading speed
-- [ ] Check mobile responsiveness
-- [ ] Verify API calls work
+2. **For payment testing**, you'll need to deploy the functions or use a separate backend
 
 ## Troubleshooting
 
-### Common Issues:
+### Common Issues
 
-#### Build Fails
-- Check that all dependencies are in `package.json`
-- Verify environment variables are set correctly
+1. **Function Not Found (404)**
+   - Check that `netlify/functions/create-payment-intent.js` exists
+   - Verify the function is properly exported
+   - Check Netlify build logs
 
-#### API Errors
-- Ensure `REACT_APP_GROQ_API_KEY` is set correctly
-- Check Groq API quota and limits
+2. **CORS Errors**
+   - The function includes CORS headers automatically
+   - Check that the function URL is correct
 
-#### Analytics Not Working
-- Verify `REACT_APP_GA_MEASUREMENT_ID` is correct
-- Check browser console for errors
+3. **Environment Variables**
+   - Ensure all variables are set in Netlify dashboard
+   - Check that variable names match exactly
 
-#### App Not Loading
-- Check build logs for errors
-- Verify all environment variables are set
+4. **Build Failures**
+   - Check build logs in Netlify dashboard
+   - Ensure all dependencies are in `package.json`
 
-## Recommended: Netlify
+### Stripe Test Cards
 
-I recommend **Netlify** because:
-- ✅ Free tier is generous
-- ✅ Automatic deployments from Git
-- ✅ Easy environment variable management
-- ✅ Great performance
-- ✅ Custom domains included
-- ✅ SSL certificates included
+Use these test cards for testing:
+- **Success**: `4242 4242 4242 4242`
+- **Decline**: `4000 0000 0000 0002`
+- **Requires Authentication**: `4000 0025 0000 3155`
 
-## Next Steps After Deployment
+## Security Notes
 
-1. **Set up Google Analytics goals** for essay analysis
-2. **Monitor user behavior** and engagement
-3. **Collect feedback** from users
-4. **Iterate and improve** based on analytics data
-5. **Consider adding features** like user accounts, saved essays, etc.
+1. **Never commit** `.env` files to Git
+2. **Use environment variables** for all sensitive data
+3. **Test thoroughly** before going live
+4. **Monitor function logs** for any issues
 
-Your app is ready to go live! 🚀 
+## Custom Domain (Optional)
+
+1. **Add custom domain** in Netlify dashboard
+2. **Update DNS** records as instructed
+3. **Update Stripe webhook URLs** if needed
+
+## Monitoring
+
+1. **Check function logs** in Netlify dashboard
+2. **Monitor Stripe dashboard** for payment activity
+3. **Set up alerts** for any failures
+
+## Post-Deployment Checklist
+
+- [ ] Frontend loads correctly
+- [ ] Payment flow works with test cards
+- [ ] Environment variables are set correctly
+- [ ] Function logs show no errors
+- [ ] Mobile responsiveness works
+- [ ] Analytics tracking works
+- [ ] Custom domain (if applicable) works
+
+## Benefits of This Approach
+
+✅ **Single Platform**: Everything on Netlify
+✅ **No Separate Backend**: Serverless functions handle payments
+✅ **Easy Deployment**: One-click deployment from GitHub
+✅ **Automatic Scaling**: Functions scale automatically
+✅ **Free Tier**: Generous free tier for functions
+✅ **Integrated Logs**: All logs in one place 

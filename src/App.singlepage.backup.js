@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import { initGA, trackEssayAnalysis, trackModeSelection, trackFeedbackExpansion, trackError } from './utils/analytics';
 import TrustedBySection from './components/TrustedBySection';
-import InfoPage from './InfoPage';
-import EssayAnalyzer from './EssayAnalyzer';
-import PaymentModal from './components/PaymentModal';
 
-const FEEDBACK_PROMPT = (mode, essayPrompt, isPro = false) => {
+  const FEEDBACK_PROMPT = (mode, essayPrompt, isPro = false) => {
   const modeConfig = {
     standard: {
       rigor: "moderate",
@@ -509,6 +505,78 @@ function CompactScoreCard({ category, score, feedback, isExpanded, onToggle }) {
   );
 }
 
+function PaymentModal({ isOpen, onSuccess, onCancel }) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePayment = () => {
+    setIsProcessing(true);
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false);
+      onSuccess();
+    }, 2000);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-xl">✨</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Upgrade to Pro</h2>
+          <p className="text-gray-600">Unlock unlimited analyses and enhanced features</p>
+        </div>
+
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
+            </div>
+            <span className="text-gray-700">Enhanced AI analysis</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
+            </div>
+            <span className="text-gray-700">Early access to latest features</span>
+          </div>
+        </div>
+
+        <div className="text-center mb-6">
+          <div className="text-3xl font-bold text-gray-800 mb-1">$9.99</div>
+          <div className="text-gray-500 text-sm">One-time payment</div>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={handlePayment}
+            disabled={isProcessing}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50"
+          >
+            {isProcessing ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Processing...
+              </div>
+            ) : (
+              'Upgrade Now'
+            )}
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 px-4 rounded-xl transition-colors"
+          >
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GradingModeSelector({ selectedMode, onModeChange }) {
   return (
     <div className="mb-6">
@@ -546,88 +614,354 @@ function GradingModeSelector({ selectedMode, onModeChange }) {
   );
 }
 
-function NavBar({ isPro, onUpgradeToPro, onResetPro }) {
-  const location = useLocation();
-  return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-white/30 shadow-lg sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Admitly
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center space-x-4">
-            {isPro ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">★</span>
-                </div>
-                <span className="text-sm font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                  Pro
-                </span>
-                <button
-                  onClick={onResetPro}
-                  className="text-xs text-gray-500 hover:text-gray-700 underline"
-                  title="Reset to free version (for testing)"
-                >
-                  Reset
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={onUpgradeToPro}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Upgrade to Pro
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-export default function App() {
-  const [isPro, setIsPro] = React.useState(() => {
+function App() {
+  const [essay, setEssay] = useState('');
+  const [essayPrompt, setEssayPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [rawJson, setRawJson] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [selectedMode, setSelectedMode] = useState('standard');
+  const [isPro, setIsPro] = useState(() => {
     return localStorage.getItem('admitly_pro') === 'true';
   });
-  const [showPaymentModal, setShowPaymentModal] = React.useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const wordCount = essay.trim() ? essay.trim().split(/\s+/).length : 0;
+  const isOverLimit = wordCount > 650;
+
+  const toggleCategory = (category) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+      // Track when user expands a feedback category
+      trackFeedbackExpansion(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const handleEssayChange = (e) => {
+    const newEssay = e.target.value;
+    const newWordCount = newEssay.trim() ? newEssay.trim().split(/\s+/).length : 0;
+    
+    if (newWordCount <= 650) {
+      setEssay(newEssay);
+      
+      // Auto-resize textarea
+      const textarea = e.target;
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 400) + 'px';
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!essay.trim()) return;
+    if (isOverLimit) return;
+    
+    setLoading(true);
+    setError(null);
+    setFeedback(null);
+    setRawJson(null);
+    setExpandedCategories(new Set());
+    
+    // Track the analysis attempt
+    trackEssayAnalysis(selectedMode, wordCount, !!essayPrompt.trim());
+    
+    try {
+      const apiKey = process.env.REACT_APP_GROQ_API_KEY;
+      if (!apiKey) throw new Error('Missing Groq API key.');
+      const res = await axios.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          model: 'llama3-70b-8192',
+          messages: [
+            { role: 'system', content: FEEDBACK_PROMPT(selectedMode, essayPrompt, isPro) },
+            { role: 'user', content: essay }
+          ],
+          max_tokens: 4096,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const aiText = res.data.choices?.[0]?.message?.content || '';
+      const parsed = parseMarkdownJsonFence(aiText);
+      if (parsed) {
+        setFeedback(parsed);
+      } else {
+        // Try to extract feedback from raw text as fallback
+        const extracted = extractFeedbackFromRawText(aiText);
+        if (extracted && extracted.scores) {
+          setFeedback(extracted);
+        } else {
+          setRawJson(aiText);
+          setError('Could not parse feedback. Showing raw response.');
+        }
+      }
+    } catch (err) {
+      const errorMessage = err?.response?.data?.error?.message || err.message || 'Unknown error';
+      setError(errorMessage);
+      trackError('api_error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModeChange = (mode) => {
+    setSelectedMode(mode);
+    trackModeSelection(mode);
+  };
 
   const handleUpgradeToPro = () => {
     setShowPaymentModal(true);
   };
-  const handlePaymentSuccess = (paymentResult) => {
+
+  const handlePaymentSuccess = () => {
     setIsPro(true);
     localStorage.setItem('admitly_pro', 'true');
     setShowPaymentModal(false);
   };
+
   const handlePaymentCancel = () => {
     setShowPaymentModal(false);
   };
+
   const handleResetPro = () => {
     setIsPro(false);
     localStorage.removeItem('admitly_pro');
   };
 
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    if (feedback) {
+      trackEssayAnalysis(feedback);
+    }
+  }, [feedback]);
+
+  useEffect(() => {
+    trackModeSelection(selectedMode);
+  }, [selectedMode]);
+
+  useEffect(() => {
+    if (expandedCategories.size > 0) {
+      trackFeedbackExpansion(selectedMode, Array.from(expandedCategories));
+    }
+  }, [selectedMode, expandedCategories]);
+
+  useEffect(() => {
+    if (error) {
+      trackError(error);
+    }
+  }, [error]);
+
   return (
-    <Router>
-      <NavBar isPro={isPro} onUpgradeToPro={handleUpgradeToPro} onResetPro={handleResetPro} />
-      <Routes>
-        <Route path="/" element={<InfoPage />} />
-        <Route path="/analyze" element={<EssayAnalyzer />} />
-      </Routes>
-      <PaymentModal
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col">
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-white/30 shadow-lg">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">AI</span>
+                </div>
+                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Admitly
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {isPro ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">★</span>
+                  </div>
+                  <span className="text-sm font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                    Pro
+                  </span>
+                  <button
+                    onClick={handleResetPro}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    title="Reset to free version (for testing)"
+                  >
+                    Reset
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleUpgradeToPro}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  Upgrade to Pro
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex-1 py-8 px-3 sm:px-4">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-4">
+              <span className="mr-2">✨</span>
+              AI-Powered College Essay Analysis
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Get Into Your Dream School
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Admitly's AI analyzes your college essay with expert-level feedback to help you stand out in admissions
+            </p>
+          </div>
+
+          <TrustedBySection />
+          
+          {/* Grading Mode Selection */}
+          <GradingModeSelector selectedMode={selectedMode} onModeChange={handleModeChange} />
+          
+          {/* Input Section */}
+          <div className="mb-8">
+            <div className="w-full max-w-4xl mx-auto">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">📝</span>
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-lg text-gray-800">Essay Prompt & Response</h2>
+                    <p className="text-sm text-gray-600">Enter the prompt and your essay</p>
+                  </div>
+                </div>
+                
+                {/* Essay Prompt Input */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Essay Prompt (Optional)
+                  </label>
+                  <textarea
+                    className="w-full min-h-[80px] p-3 border-2 border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-4 focus:ring-blue-400/30 text-sm transition-all duration-300 shadow-inner"
+                    placeholder="Paste the essay prompt here (e.g., 'Describe a challenge you've faced and how you overcame it')"
+                    value={essayPrompt}
+                    onChange={(e) => setEssayPrompt(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                
+                {/* Essay Response Input */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Essay Response
+                  </label>
+                  <textarea
+                    className={`w-full min-h-[120px] sm:min-h-[160px] p-4 sm:p-5 border-2 rounded-xl resize-none focus:outline-none focus:ring-4 focus:ring-blue-400/30 text-sm sm:text-base shadow-inner transition-all duration-300 ${
+                      isOverLimit ? 'border-red-300 focus:ring-red-400/30' : 'border-gray-200 focus:border-blue-400'
+                    }`}
+                    placeholder="Start writing or paste your college essay here..."
+                    value={essay}
+                    onChange={handleEssayChange}
+                    disabled={loading}
+                    style={{ maxHeight: '400px', overflowY: 'auto' }}
+                  />
+                </div>
+                
+                <div className="flex justify-between items-center mb-6">
+                  <div className={`text-sm font-medium ${isOverLimit ? 'text-red-600' : 'text-gray-600'}`}>
+                    {wordCount}/650 words
+                  </div>
+                  {isOverLimit && (
+                    <div className="text-red-600 text-sm font-bold bg-red-100 px-3 py-1 rounded-full">
+                      Word limit exceeded
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <button
+                    className={`px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-sm sm:text-base ${
+                      loading || !essay.trim() || isOverLimit 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-lg'
+                    }`}
+                    onClick={handleAnalyze}
+                    disabled={loading || !essay.trim() || isOverLimit}
+                  >
+                    {loading ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Analyzing...
+                      </div>
+                    ) : (
+                      '🚀 Analyze Essay'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-600 font-bold bg-red-100 border-2 border-red-300 rounded-xl p-4 max-w-4xl mx-auto text-center text-sm mb-6 shadow-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Feedback Section */}
+          {feedback && (
+            <div className="w-full">
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center space-x-3 mb-2">
+                  <h2 className="text-2xl font-bold text-gray-800">Your Essay Analysis</h2>
+                  {isPro && (
+                    <div className="flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full">
+                      <span className="text-white text-xs font-bold">★</span>
+                      <span className="text-white text-xs font-bold">PRO</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-600">
+                  {isPro ? 'Enhanced AI analysis' : 'Detailed feedback on every aspect of your essay'}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 max-w-4xl mx-auto">
+                {SCORE_CATEGORIES.map(cat => (
+                  <CompactScoreCard
+                    key={cat}
+                    category={cat}
+                    score={feedback.scores?.[cat] ?? 0}
+                    feedback={feedback.feedback?.[cat]}
+                    isExpanded={expandedCategories.has(cat)}
+                    onToggle={() => toggleCategory(cat)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {rawJson && (
+            <pre className="mt-6 bg-white/80 backdrop-blur-sm p-4 rounded-xl text-xs max-w-4xl mx-auto overflow-x-auto border border-white/30 shadow-lg">{rawJson}</pre>
+          )}
+        </div>
+      </div>
+
+      {/* Payment Modal */}
+      <PaymentModal 
         isOpen={showPaymentModal}
         onSuccess={handlePaymentSuccess}
         onCancel={handlePaymentCancel}
       />
-    </Router>
+    </div>
   );
 }
+
+export default App;
