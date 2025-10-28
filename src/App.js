@@ -26,29 +26,7 @@ function NavBar({ isPro, onUpgradeToPro, onResetPro }) {
               </Link>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            {isPro ? (
-              <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full">
-                <span className="text-white text-sm font-bold">★</span>
-                <span className="text-white text-sm font-bold">PRO</span>
-              </div>
-            ) : (
-              <button
-                onClick={onUpgradeToPro}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-              >
-                Upgrade to Pro
-              </button>
-            )}
-            {isPro && (
-              <button
-                onClick={onResetPro}
-                className="text-gray-500 hover:text-gray-700 text-sm"
-              >
-                Reset Pro
-              </button>
-            )}
-          </div>
+          
         </div>
       </div>
     </nav>
